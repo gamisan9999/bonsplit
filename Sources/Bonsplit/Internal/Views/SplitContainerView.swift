@@ -18,7 +18,15 @@ private func debugRectString(_ rect: NSRect) -> String {
     return "\(x):\(y)+\(w)x\(h)"
 }
 
-private final class DebugSplitView: NSSplitView {
+private class ThemedSplitView: NSSplitView {
+    var customDividerColor: NSColor?
+
+    override var dividerColor: NSColor {
+        customDividerColor ?? super.dividerColor
+    }
+}
+
+private final class DebugSplitView: ThemedSplitView {
     var debugSplitToken: String = "none"
     private var lastLoggedEventTimestampMs: Int = -1
 
@@ -94,11 +102,15 @@ struct SplitContainerView<Content: View, EmptyContent: View>: NSViewRepresentabl
 
     func makeNSView(context: Context) -> NSSplitView {
 #if DEBUG
-        let splitView = DebugSplitView()
-        splitView.debugSplitToken = String(splitState.id.uuidString.prefix(5))
+        let splitView: ThemedSplitView = {
+            let debugSplitView = DebugSplitView()
+            debugSplitView.debugSplitToken = String(splitState.id.uuidString.prefix(5))
+            return debugSplitView
+        }()
 #else
-        let splitView = NSSplitView()
+        let splitView = ThemedSplitView()
 #endif
+        splitView.customDividerColor = TabBarColors.nsColorSeparator(for: appearance)
         splitView.isVertical = splitState.orientation == .horizontal
         splitView.dividerStyle = .thin
         splitView.delegate = context.coordinator
@@ -297,6 +309,7 @@ struct SplitContainerView<Content: View, EmptyContent: View>: NSViewRepresentabl
         splitView.isHidden = !controller.isInteractive
         splitView.wantsLayer = true
         splitView.layer?.backgroundColor = chromeBackgroundColor.cgColor
+        (splitView as? ThemedSplitView)?.customDividerColor = TabBarColors.nsColorSeparator(for: appearance)
 
         // Update orientation if changed
         splitView.isVertical = splitState.orientation == .horizontal

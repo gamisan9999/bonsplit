@@ -378,6 +378,16 @@ struct TabItemView: View {
                     .frame(height: TabBarMetrics.activeIndicatorHeight)
             }
 
+            // Bottom border for the active tab so selected tab chrome matches pane/split borders.
+            if isSelected {
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                    Rectangle()
+                        .fill(TabBarColors.separator(for: appearance))
+                        .frame(height: 1)
+                }
+            }
+
             // Right border separator
             HStack {
                 Spacer()

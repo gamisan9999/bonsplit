@@ -17,6 +17,13 @@ enum TabBarColors {
         return NSColor(bonsplitHex: value)
     }
 
+    private static func chromeBorderColor(
+        for appearance: BonsplitConfiguration.Appearance
+    ) -> NSColor? {
+        guard let value = appearance.chromeColors.borderHex else { return nil }
+        return NSColor(bonsplitHex: value)
+    }
+
     private static func effectiveBackgroundColor(
         for appearance: BonsplitConfiguration.Appearance,
         fallback fallbackColor: NSColor
@@ -141,14 +148,22 @@ enum TabBarColors {
     }
 
     static func separator(for appearance: BonsplitConfiguration.Appearance) -> Color {
+        Color(nsColor: nsColorSeparator(for: appearance))
+    }
+
+    static func nsColorSeparator(for appearance: BonsplitConfiguration.Appearance) -> NSColor {
+        if let explicit = chromeBorderColor(for: appearance) {
+            return explicit
+        }
+
         guard let custom = chromeBackgroundColor(for: appearance) else {
-            return separator
+            return .separatorColor
         }
         let alpha: CGFloat = custom.isBonsplitLightColor ? 0.26 : 0.36
         let tone = custom.isBonsplitLightColor
             ? custom.bonsplitDarken(by: 0.12)
             : custom.bonsplitLighten(by: 0.16)
-        return Color(nsColor: tone.withAlphaComponent(alpha))
+        return tone.withAlphaComponent(alpha)
     }
 
     static var dropIndicator: Color {

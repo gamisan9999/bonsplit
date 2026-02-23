@@ -129,8 +129,16 @@ extension BonsplitConfiguration {
             /// When unset, Bonsplit uses native system colors.
             public var backgroundHex: String?
 
-            public init(backgroundHex: String? = nil) {
+            /// Optional hex color (`#RRGGBB`) for separators/dividers.
+            /// When unset, Bonsplit derives separators from the chrome background.
+            public var borderHex: String?
+
+            public init(
+                backgroundHex: String? = nil,
+                borderHex: String? = nil
+            ) {
                 self.backgroundHex = backgroundHex
+                self.borderHex = borderHex
             }
         }
 
