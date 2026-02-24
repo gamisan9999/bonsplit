@@ -366,7 +366,11 @@ struct UnifiedPaneDropDelegate: DropDelegate {
         if zone == .center {
             if sourcePaneId != pane.id {
                 withTransaction(Transaction(animation: nil)) {
-                    controller.moveTab(draggedTab, from: sourcePaneId, to: pane.id, atIndex: nil)
+                    _ = bonsplitController.moveTab(
+                        TabID(id: draggedTab.id),
+                        toPane: pane.id,
+                        atIndex: nil
+                    )
                 }
             }
         } else if let orientation = zone.orientation {

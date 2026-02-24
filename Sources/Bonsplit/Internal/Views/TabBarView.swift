@@ -875,7 +875,11 @@ struct TabDropDelegate: DropDelegate {
                     }
                     pane.moveTab(from: sourceIndex, to: targetIndex)
                 } else {
-                    controller.moveTab(draggedTab, from: sourcePaneId, to: pane.id, atIndex: targetIndex)
+                    _ = bonsplitController.moveTab(
+                        TabID(id: draggedTab.id),
+                        toPane: pane.id,
+                        atIndex: targetIndex
+                    )
                 }
             }
         }
