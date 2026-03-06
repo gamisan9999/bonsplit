@@ -304,6 +304,39 @@ struct UnifiedPaneDropDelegate: DropDelegate {
         }
     }
 
+    private func effectiveZone(for info: DropInfo) -> DropZone {
+        let defaultZone = zoneForLocation(info.location)
+        guard let draggedTab = controller.activeDragTab ?? controller.draggingTab,
+              let sourcePaneId = controller.activeDragSourcePaneId ?? controller.dragSourcePaneId else {
+            return defaultZone
+        }
+        guard shouldPreferAdjacentPaneMove(
+            for: draggedTab,
+            sourcePaneId: sourcePaneId,
+            defaultZone: defaultZone
+        ) else {
+            return defaultZone
+        }
+        return .center
+    }
+
+    private func shouldPreferAdjacentPaneMove(
+        for draggedTab: TabItem,
+        sourcePaneId: PaneID,
+        defaultZone: DropZone
+    ) -> Bool {
+        guard draggedTab.kind == "terminal",
+              sourcePaneId != pane.id else {
+            return false
+        }
+        guard defaultZone != .top, defaultZone != .bottom else {
+            return false
+        }
+        let leftNeighbor = bonsplitController.adjacentPane(to: sourcePaneId, direction: .left)
+        let rightNeighbor = bonsplitController.adjacentPane(to: sourcePaneId, direction: .right)
+        return leftNeighbor == pane.id || rightNeighbor == pane.id
+    }
+
     func performDrop(info: DropInfo) -> Bool {
         if !Thread.isMainThread {
             return DispatchQueue.main.sync {
@@ -311,7 +344,7 @@ struct UnifiedPaneDropDelegate: DropDelegate {
             }
         }
 
-        let zone = zoneForLocation(info.location)
+        let zone = effectiveZone(for: info)
 #if DEBUG
         dlog(
             "pane.drop pane=\(pane.id.id.uuidString.prefix(5)) zone=\(zone) " +
@@ -401,7 +434,7 @@ struct UnifiedPaneDropDelegate: DropDelegate {
 
     func dropEntered(info: DropInfo) {
         dropLifecycle = .hovering
-        let zone = zoneForLocation(info.location)
+        let zone = effectiveZone(for: info)
         activeDropZone = zone
 #if DEBUG
         dlog(
@@ -428,7 +461,7 @@ struct UnifiedPaneDropDelegate: DropDelegate {
 #endif
             return DropProposal(operation: .move)
         }
-        let zone = zoneForLocation(info.location)
+        let zone = effectiveZone(for: info)
         activeDropZone = zone
 #if DEBUG
         dlog("pane.dropUpdated pane=\(pane.id.id.uuidString.prefix(5)) zone=\(zone)")

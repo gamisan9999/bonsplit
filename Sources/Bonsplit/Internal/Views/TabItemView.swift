@@ -342,6 +342,14 @@ struct TabItemView: View {
 
         contextButton("Move Tab…", action: .move)
 
+        if contextMenuState.isTerminal {
+            localizedContextButton("command.moveTabToLeftPane.title", action: .moveToLeftPane)
+                .disabled(!contextMenuState.canMoveToLeftPane)
+
+            localizedContextButton("command.moveTabToRightPane.title", action: .moveToRightPane)
+                .disabled(!contextMenuState.canMoveToRightPane)
+        }
+
         Divider()
 
         contextButton("New Terminal Tab to Right", action: .newTerminalToRight)
@@ -389,6 +397,24 @@ struct TabItemView: View {
         } else {
             Button(title) {
                 onContextAction(action)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func localizedContextButton(_ titleKey: LocalizedStringKey, action: TabContextAction) -> some View {
+        if let shortcut = contextMenuState.shortcuts[action] {
+            Button {
+                onContextAction(action)
+            } label: {
+                Text(titleKey)
+            }
+            .keyboardShortcut(shortcut)
+        } else {
+            Button {
+                onContextAction(action)
+            } label: {
+                Text(titleKey)
             }
         }
     }
