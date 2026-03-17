@@ -141,7 +141,9 @@ struct TabBarView: View {
                                 .contentShape(Rectangle())
                                 .background(
                                     EmptyTabBarDoubleClickMonitorView {
+                                        guard splitViewController.isInteractive else { return false }
                                         controller.requestNewTab(kind: "terminal", inPane: pane.id)
+                                        return true
                                     }
                                 )
                                 .onDrop(of: [.tabTransfer], delegate: TabDropDelegate(
@@ -420,7 +422,9 @@ struct TabBarView: View {
             .contentShape(Rectangle())
             .background(
                 EmptyTabBarDoubleClickMonitorView {
+                    guard splitViewController.isInteractive else { return false }
                     controller.requestNewTab(kind: "terminal", inPane: pane.id)
+                    return true
                 }
             )
             .onDrop(of: [.tabTransfer], delegate: TabDropDelegate(
@@ -579,10 +583,10 @@ private struct SplitActionButtonStyle: ButtonStyle {
 }
 
 private struct EmptyTabBarDoubleClickMonitorView: NSViewRepresentable {
-    let onDoubleClick: () -> Void
+    let onDoubleClick: () -> Bool
 
     final class Coordinator {
-        var onDoubleClick: (() -> Void)?
+        var onDoubleClick: (() -> Bool)?
         weak var view: NSView?
         var monitor: Any?
 
@@ -612,7 +616,7 @@ private struct EmptyTabBarDoubleClickMonitorView: NSViewRepresentable {
             let point = view.convert(event.locationInWindow, from: nil)
             guard view.bounds.contains(point) else { return event }
 
-            coordinator.onDoubleClick?()
+            guard coordinator.onDoubleClick?() == true else { return event }
             return nil
         }
 
