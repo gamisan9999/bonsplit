@@ -98,6 +98,15 @@ struct TabBarView: View {
         isFocused && controlKeyMonitor.isShortcutHintVisible
     }
 
+    /// Watchcat / inline embed toggle applies only when the selected surface is a terminal tab.
+    private var isWatchcatEmbedToggleEnabled: Bool {
+        pane.selectedTab?.kind == "terminal"
+    }
+
+    private var isWatchcatEmbedActive: Bool {
+        controller.watchcatEmbedActiveEvaluator?(pane.id) == true
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Scrollable tabs with fade overlays
@@ -464,6 +473,8 @@ struct TabBarView: View {
     @ViewBuilder
     private var splitButtons: some View {
         let tooltips = controller.configuration.appearance.splitButtonTooltips
+        // Subscribe to host-driven embed toggles (evaluator result is not observable).
+        let _ = controller.watchcatEmbedPresentationRevision
         HStack(spacing: 4) {
             Button {
                 controller.requestNewTab(kind: "terminal", inPane: pane.id)
@@ -482,6 +493,18 @@ struct TabBarView: View {
             }
             .buttonStyle(SplitActionButtonStyle(appearance: appearance))
             .safeHelp(tooltips.newBrowser)
+
+            Button {
+                guard splitViewController.isInteractive else { return }
+                controller.requestNewTab(kind: "watchcat", inPane: pane.id)
+            } label: {
+                Image(systemName: isWatchcatEmbedActive ? "cat.fill" : "cat")
+                    .font(.system(size: 12))
+            }
+            .buttonStyle(SplitActionButtonStyle(appearance: appearance))
+            .safeHelp(tooltips.watchcatReport)
+            .disabled(!isWatchcatEmbedToggleEnabled)
+            .opacity(isWatchcatEmbedToggleEnabled ? 1.0 : 0.35)
 
             Button {
                 // 120fps animation handled by SplitAnimator

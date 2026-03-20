@@ -105,6 +105,8 @@ extension BonsplitConfiguration {
     public struct SplitButtonTooltips: Sendable, Equatable {
         public var newTerminal: String
         public var newBrowser: String
+        /// Tooltip for the optional per-pane embed toggle (e.g. Watchcat overlay on terminal surfaces).
+        public var watchcatReport: String
         public var splitRight: String
         public var splitDown: String
 
@@ -113,11 +115,13 @@ extension BonsplitConfiguration {
         public init(
             newTerminal: String = "New Terminal",
             newBrowser: String = "New Browser",
+            watchcatReport: String = "Watchcat report (toggle)",
             splitRight: String = "Split Right",
             splitDown: String = "Split Down"
         ) {
             self.newTerminal = newTerminal
             self.newBrowser = newBrowser
+            self.watchcatReport = watchcatReport
             self.splitRight = splitRight
             self.splitDown = splitDown
         }

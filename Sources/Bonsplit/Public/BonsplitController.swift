@@ -55,6 +55,13 @@ public final class BonsplitController {
     /// Internal host-driven closes should not use this hook.
     @ObservationIgnored public var onTabCloseRequest: ((_ tabId: TabID, _ paneId: PaneID) -> Void)?
 
+    /// Host evaluates whether a terminal pane is showing an inline embed (e.g. Watchcat WKWebView).
+    /// Used to style the tab bar embed toggle (e.g. filled cat icon).
+    @ObservationIgnored public var watchcatEmbedActiveEvaluator: ((PaneID) -> Bool)?
+
+    /// Bumped by the host when embed visibility changes so `@Observable` tab bars refresh icon state.
+    public var watchcatEmbedPresentationRevision: UInt64 = 0
+
     // MARK: - Internal State
 
     internal var internalController: SplitViewController
