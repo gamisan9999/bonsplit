@@ -91,17 +91,31 @@ struct TabBarView: View {
     }
 
     /// Prefer `meteor` via AppKit (`NSImage`); SwiftUI `Image(systemName: "meteor")` can rasterize
-    /// to an empty glyph in this toolbar. Fall back to `sparkles` when unavailable.
+    /// to an empty glyph in this toolbar. If `meteor` is not in the runtime symbol set (older macOS),
+    /// `NSImage(systemSymbolName:)` returns nil and we fall back to `sparkles`.
     private static func microsoftMyAppsMeteorTemplateNSImage() -> NSImage? {
-        guard #available(macOS 15.0, *) else { return nil }
         guard let base = NSImage(systemSymbolName: "meteor", accessibilityDescription: "Microsoft My Apps") else {
             return nil
         }
         let config = NSImage.SymbolConfiguration(pointSize: 12, weight: .regular)
         guard let configured = base.withSymbolConfiguration(config) else { return nil }
-        guard let copy = configured.copy() as? NSImage else { return nil }
-        copy.isTemplate = true
-        return copy
+        if let copy = configured.copy() as? NSImage {
+            copy.isTemplate = true
+            return copy
+        }
+        // Some symbol-backed images fail `copy()`; rasterize so we still get a template bitmap.
+        return Self.rasterizedTemplateNSImage(from: configured, pixelSize: 16)
+    }
+
+    private static func rasterizedTemplateNSImage(from image: NSImage, pixelSize: CGFloat) -> NSImage? {
+        let size = NSSize(width: pixelSize, height: pixelSize)
+        var proposed = NSRect(origin: .zero, size: size)
+        guard let cgImage = image.cgImage(forProposedRect: &proposed, context: nil, hints: nil) else {
+            return nil
+        }
+        let out = NSImage(cgImage: cgImage, size: proposed.size)
+        out.isTemplate = true
+        return out
     }
 
     @ViewBuilder
@@ -218,8 +232,9 @@ struct TabBarView: View {
                 .overlay(fadeOverlays)
             }
             // Keep trailing actions (terminal / globe / …) from being squeezed to zero when the tab
-            // strip competes for width inside a narrow pane.
-            .frame(minWidth: 0)
+            // strip competes for width inside a narrow pane. Also enforce a floor so the tab strip
+            // never collapses to ~0 width (weird layout / “paper thin” windows when the pane is tight).
+            .frame(minWidth: 120, idealWidth: 200, maxWidth: .infinity)
             .layoutPriority(-1)
 
             // Split buttons
