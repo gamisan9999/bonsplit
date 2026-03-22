@@ -90,45 +90,9 @@ struct TabBarView: View {
         shouldShowFullSaturation ? 1.0 : 0.0
     }
 
-    /// Prefer `meteor` via AppKit (`NSImage`); SwiftUI `Image(systemName: "meteor")` can rasterize
-    /// to an empty glyph in this toolbar. If `meteor` is not in the runtime symbol set (older macOS),
-    /// `NSImage(systemSymbolName:)` returns nil and we fall back to `sparkles`.
-    private static func microsoftMyAppsMeteorTemplateNSImage() -> NSImage? {
-        guard let base = NSImage(systemSymbolName: "meteor", accessibilityDescription: "Microsoft My Apps") else {
-            return nil
-        }
-        let config = NSImage.SymbolConfiguration(pointSize: 12, weight: .regular)
-        guard let configured = base.withSymbolConfiguration(config) else { return nil }
-        if let copy = configured.copy() as? NSImage {
-            copy.isTemplate = true
-            return copy
-        }
-        // Some symbol-backed images fail `copy()`; rasterize so we still get a template bitmap.
-        return Self.rasterizedTemplateNSImage(from: configured, pixelSize: 16)
-    }
-
-    private static func rasterizedTemplateNSImage(from image: NSImage, pixelSize: CGFloat) -> NSImage? {
-        let size = NSSize(width: pixelSize, height: pixelSize)
-        var proposed = NSRect(origin: .zero, size: size)
-        guard let cgImage = image.cgImage(forProposedRect: &proposed, context: nil, hints: nil) else {
-            return nil
-        }
-        let out = NSImage(cgImage: cgImage, size: proposed.size)
-        out.isTemplate = true
-        return out
-    }
-
-    @ViewBuilder
-    private var microsoftMyAppsToolbarIcon: some View {
-        if let nsImage = Self.microsoftMyAppsMeteorTemplateNSImage() {
-            Image(nsImage: nsImage)
-                .frame(width: 14, height: 14)
-        } else {
-            Image(systemName: "sparkles")
-                .font(.system(size: 12))
-                .symbolRenderingMode(.monochrome)
-        }
-    }
+    /// Microsoft My Apps toolbar glyph. SF Symbol `meteor` is unreliable here (often blank in SwiftUI
+    /// / AppKit in this tab-bar context); `sparkles` is used intentionally for a stable icon.
+    private static let microsoftMyAppsToolbarSymbolName = "sparkles"
 
     private var appearance: BonsplitConfiguration.Appearance {
         controller.configuration.appearance
@@ -561,7 +525,9 @@ struct TabBarView: View {
                     controller.requestNewTab(kind: "microsoftMyApps", inPane: pane.id)
                 }
             } label: {
-                microsoftMyAppsToolbarIcon
+                Image(systemName: Self.microsoftMyAppsToolbarSymbolName)
+                    .font(.system(size: 12))
+                    .symbolRenderingMode(.monochrome)
             }
             .buttonStyle(SplitActionButtonStyle(appearance: appearance))
             .safeHelp(tooltips.microsoftMyApps)
