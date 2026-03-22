@@ -62,6 +62,10 @@ public final class BonsplitController {
     /// Bumped by the host when embed visibility changes so `@Observable` tab bars refresh icon state.
     public var watchcatEmbedPresentationRevision: UInt64 = 0
 
+    /// Host handler for the optional Microsoft My Apps toolbar button (meteor / sparkles) on each pane tab bar.
+    /// When set, the tab bar invokes this directly instead of `requestNewTab(kind: "microsoftMyApps")`.
+    @ObservationIgnored public var microsoftMyAppsToolbarAction: (() -> Void)?
+
     // MARK: - Internal State
 
     internal var internalController: SplitViewController

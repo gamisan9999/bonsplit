@@ -90,6 +90,14 @@ struct TabBarView: View {
         shouldShowFullSaturation ? 1.0 : 0.0
     }
 
+    /// SF Symbol `meteor` is macOS 15+; use a visible fallback on older systems.
+    private var microsoftMyAppsToolbarSymbolName: String {
+        if #available(macOS 15.0, *) {
+            return "meteor"
+        }
+        return "sparkles"
+    }
+
     private var appearance: BonsplitConfiguration.Appearance {
         controller.configuration.appearance
     }
@@ -191,10 +199,16 @@ struct TabBarView: View {
                 .frame(height: TabBarMetrics.barHeight)
                 .overlay(fadeOverlays)
             }
+            // Keep trailing actions (terminal / globe / …) from being squeezed to zero when the tab
+            // strip competes for width inside a narrow pane.
+            .frame(minWidth: 0)
+            .layoutPriority(-1)
 
             // Split buttons
             if showSplitButtons {
                 splitButtons
+                    .fixedSize(horizontal: true, vertical: false)
+                    .layoutPriority(1)
                     .saturation(tabBarSaturation)
             }
         }
@@ -484,6 +498,20 @@ struct TabBarView: View {
             }
             .buttonStyle(SplitActionButtonStyle(appearance: appearance))
             .safeHelp(tooltips.newTerminal)
+
+            Button {
+                guard splitViewController.isInteractive else { return }
+                if let action = controller.microsoftMyAppsToolbarAction {
+                    action()
+                } else {
+                    controller.requestNewTab(kind: "microsoftMyApps", inPane: pane.id)
+                }
+            } label: {
+                Image(systemName: microsoftMyAppsToolbarSymbolName)
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .buttonStyle(SplitActionButtonStyle(appearance: appearance))
+            .safeHelp(tooltips.microsoftMyApps)
 
             Button {
                 controller.requestNewTab(kind: "browser", inPane: pane.id)

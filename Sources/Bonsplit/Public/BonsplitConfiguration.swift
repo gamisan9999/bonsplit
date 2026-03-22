@@ -107,6 +107,8 @@ extension BonsplitConfiguration {
         public var newBrowser: String
         /// Tooltip for the optional per-pane embed toggle (e.g. Watchcat overlay on terminal surfaces).
         public var watchcatReport: String
+        /// Opens a host-defined URL in the in-app browser (e.g. Microsoft My Apps).
+        public var microsoftMyApps: String
         public var splitRight: String
         public var splitDown: String
 
@@ -116,12 +118,14 @@ extension BonsplitConfiguration {
             newTerminal: String = "New Terminal",
             newBrowser: String = "New Browser",
             watchcatReport: String = "Watchcat report (toggle)",
+            microsoftMyApps: String = "Open Microsoft My Apps in the browser",
             splitRight: String = "Split Right",
             splitDown: String = "Split Down"
         ) {
             self.newTerminal = newTerminal
             self.newBrowser = newBrowser
             self.watchcatReport = watchcatReport
+            self.microsoftMyApps = microsoftMyApps
             self.splitRight = splitRight
             self.splitDown = splitDown
         }
