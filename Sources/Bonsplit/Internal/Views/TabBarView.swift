@@ -90,10 +90,31 @@ struct TabBarView: View {
         shouldShowFullSaturation ? 1.0 : 0.0
     }
 
-    /// Microsoft My Apps toolbar glyph. `meteor` can render as a blank glyph in some SwiftUI
-    /// tab-bar / SF Symbol combinations while the button still receives clicks — use `sparkles`
-    /// so the control is always visible (same intent: distinct “extra” action next to Watchcat).
-    private static let microsoftMyAppsToolbarSymbolName = "sparkles"
+    /// Prefer `meteor` via AppKit (`NSImage`); SwiftUI `Image(systemName: "meteor")` can rasterize
+    /// to an empty glyph in this toolbar. Fall back to `sparkles` when unavailable.
+    private static func microsoftMyAppsMeteorTemplateNSImage() -> NSImage? {
+        guard #available(macOS 15.0, *) else { return nil }
+        guard let base = NSImage(systemSymbolName: "meteor", accessibilityDescription: "Microsoft My Apps") else {
+            return nil
+        }
+        let config = NSImage.SymbolConfiguration(pointSize: 12, weight: .regular)
+        guard let configured = base.withSymbolConfiguration(config) else { return nil }
+        guard let copy = configured.copy() as? NSImage else { return nil }
+        copy.isTemplate = true
+        return copy
+    }
+
+    @ViewBuilder
+    private var microsoftMyAppsToolbarIcon: some View {
+        if let nsImage = Self.microsoftMyAppsMeteorTemplateNSImage() {
+            Image(nsImage: nsImage)
+                .frame(width: 14, height: 14)
+        } else {
+            Image(systemName: "sparkles")
+                .font(.system(size: 12))
+                .symbolRenderingMode(.monochrome)
+        }
+    }
 
     private var appearance: BonsplitConfiguration.Appearance {
         controller.configuration.appearance
@@ -525,9 +546,7 @@ struct TabBarView: View {
                     controller.requestNewTab(kind: "microsoftMyApps", inPane: pane.id)
                 }
             } label: {
-                Image(systemName: Self.microsoftMyAppsToolbarSymbolName)
-                    .font(.system(size: 12))
-                    .symbolRenderingMode(.monochrome)
+                microsoftMyAppsToolbarIcon
             }
             .buttonStyle(SplitActionButtonStyle(appearance: appearance))
             .safeHelp(tooltips.microsoftMyApps)
