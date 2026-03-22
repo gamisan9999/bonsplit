@@ -500,20 +500,6 @@ struct TabBarView: View {
             .safeHelp(tooltips.newTerminal)
 
             Button {
-                guard splitViewController.isInteractive else { return }
-                if let action = controller.microsoftMyAppsToolbarAction {
-                    action()
-                } else {
-                    controller.requestNewTab(kind: "microsoftMyApps", inPane: pane.id)
-                }
-            } label: {
-                Image(systemName: microsoftMyAppsToolbarSymbolName)
-                    .font(.system(size: 13, weight: .semibold))
-            }
-            .buttonStyle(SplitActionButtonStyle(appearance: appearance))
-            .safeHelp(tooltips.microsoftMyApps)
-
-            Button {
                 controller.requestNewTab(kind: "browser", inPane: pane.id)
             } label: {
                 Image(systemName: "globe")
@@ -533,6 +519,20 @@ struct TabBarView: View {
             .safeHelp(tooltips.watchcatReport)
             .disabled(!isWatchcatEmbedToggleEnabled)
             .opacity(isWatchcatEmbedToggleEnabled ? 1.0 : 0.35)
+
+            Button {
+                guard splitViewController.isInteractive else { return }
+                if let action = controller.microsoftMyAppsToolbarAction {
+                    action()
+                } else {
+                    controller.requestNewTab(kind: "microsoftMyApps", inPane: pane.id)
+                }
+            } label: {
+                Image(systemName: microsoftMyAppsToolbarSymbolName)
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .buttonStyle(SplitActionButtonStyle(appearance: appearance))
+            .safeHelp(tooltips.microsoftMyApps)
 
             Button {
                 // 120fps animation handled by SplitAnimator
