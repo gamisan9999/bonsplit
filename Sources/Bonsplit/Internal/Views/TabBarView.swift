@@ -90,13 +90,10 @@ struct TabBarView: View {
         shouldShowFullSaturation ? 1.0 : 0.0
     }
 
-    /// SF Symbol `meteor` is macOS 15+; use a visible fallback on older systems.
-    private var microsoftMyAppsToolbarSymbolName: String {
-        if #available(macOS 15.0, *) {
-            return "meteor"
-        }
-        return "sparkles"
-    }
+    /// Microsoft My Apps toolbar glyph. `meteor` can render as a blank glyph in some SwiftUI
+    /// tab-bar / SF Symbol combinations while the button still receives clicks — use `sparkles`
+    /// so the control is always visible (same intent: distinct “extra” action next to Watchcat).
+    private static let microsoftMyAppsToolbarSymbolName = "sparkles"
 
     private var appearance: BonsplitConfiguration.Appearance {
         controller.configuration.appearance
@@ -528,8 +525,9 @@ struct TabBarView: View {
                     controller.requestNewTab(kind: "microsoftMyApps", inPane: pane.id)
                 }
             } label: {
-                Image(systemName: microsoftMyAppsToolbarSymbolName)
-                    .font(.system(size: 13, weight: .semibold))
+                Image(systemName: Self.microsoftMyAppsToolbarSymbolName)
+                    .font(.system(size: 12))
+                    .symbolRenderingMode(.monochrome)
             }
             .buttonStyle(SplitActionButtonStyle(appearance: appearance))
             .safeHelp(tooltips.microsoftMyApps)
